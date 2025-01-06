@@ -1,7 +1,6 @@
 /* Run the boot image. */
 
 #include <string.h>
-#include <stdint.h>
 #include <stdlib.h>
 
 #include "flash_map_backend/flash_map_backend.h"

@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "bootutil/bootutil.h"
+#include "mcuboot_config/mcuboot_logging.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -31,7 +32,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+MCUBOOT_LOG_MODULE_REGISTER(mcuboot);
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -70,8 +71,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-  struct boot_rsp rsp;
-  int rv = boot_go(&rsp);
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -95,7 +95,8 @@ int main(void)
   MX_USART2_UART_Init();
   MX_WWDG_Init();
   /* USER CODE BEGIN 2 */
-
+  struct boot_rsp rsp;
+  int rv = boot_go(&rsp);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -103,6 +104,9 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+    HAL_Delay(1000);
+    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+
 
     /* USER CODE BEGIN 3 */
   }

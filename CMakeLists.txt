@@ -58,7 +58,8 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # List of source files
 set(SOURCE_FILES
     # Add other source files here
-    Core/Src/mcu_port.c
+    Core/Src/mcuboot_port.c
+    Core/Src/log.c
 )
 
 # Add sources to executable

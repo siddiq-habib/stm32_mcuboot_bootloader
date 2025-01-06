@@ -1,5 +1,14 @@
-#pragma once
+
+#ifndef __MCUBOOT_LOGGING_H__
+#define __MCUBOOT_LOGGING_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
+#include "log.h"
+
 #define DBG_TAG "mcuboot"
 #define DBG_LVL DBG_LOG
 
@@ -19,52 +28,38 @@
 #define MCUBOOT_LOG_LEVEL MCUBOOT_LOG_LEVEL_OFF
 #endif
 
-#define MCUBOOT_LOG_MODULE_DECLARE(domain)  /* ignore */
-#define MCUBOOT_LOG_MODULE_REGISTER(domain) /* ignore */
+#define MCUBOOT_LOG_MODULE_DECLARE(domain)	LOG_MODULE_DECLARE(domain)
 
-int sim_log_enabled(int level);
+#define MCUBOOT_LOG_MODULE_REGISTER(domain)	LOG_MODULE_DEFINE(domain, MCUBOOT_LOG_LEVEL)
 
 #if MCUBOOT_LOG_LEVEL >= MCUBOOT_LOG_LEVEL_ERROR
-#define MCUBOOT_LOG_ERR(_fmt, ...)                  \
-    do {                                            \
-        printf("[E_MCB]" _fmt "\n", ##__VA_ARGS__); \
-    } while (0)
+#define MCUBOOT_LOG_ERR(...)   LOG_ERROR(__VA_ARGS__)    
 #else
 #define MCUBOOT_LOG_ERR(...)
 #endif
 
 #if MCUBOOT_LOG_LEVEL >= MCUBOOT_LOG_LEVEL_WARNING
-#define MCUBOOT_LOG_WRN(_fmt, ...)                  \
-    do {                                            \
-        printf("[W_MCB]" _fmt "\n", ##__VA_ARGS__); \
-    } while (0)
+#define MCUBOOT_LOG_WRN(...)  LOG_WARN(__VA_ARGS__)    
 #else
 #define MCUBOOT_LOG_WRN(...)
 #endif
 
 #if MCUBOOT_LOG_LEVEL >= MCUBOOT_LOG_LEVEL_INFO
-#define MCUBOOT_LOG_INF(_fmt, ...)                  \
-    do {                                            \
-        printf("[I_MCB]" _fmt "\n", ##__VA_ARGS__); \
-    } while (0)
+#define MCUBOOT_LOG_INF(...)  LOG_INFO(__VA_ARGS__)
 #else
 #define MCUBOOT_LOG_INF(...)
 #endif
 
 #if MCUBOOT_LOG_LEVEL >= MCUBOOT_LOG_LEVEL_DEBUG
-#define MCUBOOT_LOG_DBG(_fmt, ...)                  \
-    do {                                            \
-        printf("[D_MCB]" _fmt "\n", ##__VA_ARGS__); \
-    } while (0)
+#define MCUBOOT_LOG_DBG(...)  LOG_DEBUG(__VA_ARGS__)
 #else
 #define MCUBOOT_LOG_DBG(...)
 #endif
 
-#if MCUBOOT_LOG_LEVEL >= MCUBOOT_LOG_LEVEL_SIM
-#define MCUBOOT_LOG_SIM(_fmt, ...)                  \
-    do {                                            \
-        printf("[S_MCB]" _fmt "\n", ##__VA_ARGS__); \
-    } while (0)
-#else
 #define MCUBOOT_LOG_SIM(...)
+
+#ifdef __cplusplus
+}
 #endif
+
+#endif /* __MCUBOOT_LOGGING_H__ */
