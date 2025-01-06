@@ -76,8 +76,7 @@ endforeach()
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user defined include paths
-    ${PROJECT_SOURCE_DIR}/Logging/Inc
+    # Add user defined include paths    
     PUBLIC
     ${PROJECT_SOURCE_DIR}/Core/Inc
 )

@@ -44,25 +44,6 @@ const char* log_string[] = {
 extern const struct log_source_const_data __start_log_data[];
 extern const struct log_source_const_data __stop_log_data[];
 
-
-
-
-// UART transmit complete callback
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-    if (huart->Instance == USART2) {
-        /* Signal the semaphore to unblock the waiting task */
-
-    }
-}
-
-void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
-    if (huart->Instance == USART2) {
-        /* Signal the semaphore to unblock the waiting task */
-        
-    }
-}
-
-
 /* ---------------- Function Prototypes ---------------- */
 
 /* ---------------- Function Definitions ---------------- */
@@ -71,7 +52,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
 
 void logTransmit( LogMessage_t *pLogMsg) {
     // Send the message over UART
-    HAL_UART_Transmit_IT(&huart2, (uint8_t*)pLogMsg->message, strlen(pLogMsg->message));
+    HAL_UART_Transmit(&huart2, (uint8_t*)pLogMsg->message, strlen(pLogMsg->message), HAL_MAX_DELAY);
 }
 
 /* Add the proper Formatting and then Enqueue a log message */
@@ -107,9 +88,9 @@ void formatLogAndEnqueue(uint8_t level,  const struct log_source_const_data * pl
 
             va_start(args, fmt);
             usedLen = strlen(logMsg.message); // Include brackets and space
-            vsnprintf(logMsg.message + usedLen, LOG_MESSAGE_MAX_LENGTH - usedLen, fmt, args);
+            usedLen = vsnprintf(logMsg.message + usedLen, LOG_MESSAGE_MAX_LENGTH - usedLen, fmt, args);
             va_end(args);
-
+            logMsg.message[usedLen + 1] = '\n'; 
             logTransmit(&logMsg);
 
         

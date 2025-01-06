@@ -8,6 +8,7 @@
 #ifndef __MCUBOOT_CONFIG_H__
 #define __MCUBOOT_CONFIG_H__
 
+void Mcuboot_WatchdogFeed(void);
 /*
  * Template configuration file for MCUboot.
  *
@@ -183,6 +184,7 @@
  */
 #define MCUBOOT_WATCHDOG_FEED() \
     do {                         \
+        Mcuboot_WatchdogFeed(); \
     } while (0)
 
 

@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include "bootutil/bootutil.h"
 #include "mcuboot_config/mcuboot_logging.h"
+#include "mcuboot_config/mcuboot_config.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -60,7 +61,10 @@ static void MX_WWDG_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void Mcuboot_WatchdogFeed()
+{
+  HAL_WWDG_Refresh(&hwwdg);
+}
 /* USER CODE END 0 */
 
 /**
@@ -103,10 +107,17 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    static int i = 0;
+    
+    i++;
+    HAL_Delay(10);
+    MCUBOOT_WATCHDOG_FEED();
+    if(i > 100){
+      HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+      MCUBOOT_LOG_DBG("Blinking LED\n");
+      i = 0;
+    }
     /* USER CODE END WHILE */
-    HAL_Delay(1000);
-    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-
 
     /* USER CODE BEGIN 3 */
   }
