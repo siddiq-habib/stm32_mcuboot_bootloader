@@ -60,7 +60,7 @@ void Mcuboot_WatchdogFeed(void);
  */
 
 /* Uncomment to enable the overwrite-only code path. */
-/* #define MCUBOOT_OVERWRITE_ONLY */
+#define MCUBOOT_OVERWRITE_ONLY
 
 #ifdef MCUBOOT_OVERWRITE_ONLY
 /* Uncomment to only erase and overwrite those primary slot sectors needed
@@ -129,11 +129,11 @@ void Mcuboot_WatchdogFeed(void);
 
 /* Uncomment if your flash map API supports flash_area_get_sectors().
  * See the flash APIs for more details. */
-/* #define MCUBOOT_USE_FLASH_AREA_GET_SECTORS */
+#define MCUBOOT_USE_FLASH_AREA_GET_SECTORS
 
 /* Default maximum number of flash sectors per image slot; change
  * as desirable. */
-#define MCUBOOT_MAX_IMG_SECTORS 128
+#define MCUBOOT_MAX_IMG_SECTORS 12
 
 /* Default number of separately updateable images; change in case of
  * multiple images. */
@@ -171,7 +171,7 @@ void Mcuboot_WatchdogFeed(void);
 /* Uncomment if your platform has its own mcuboot_config/mcuboot_assert.h.
  * If so, it must provide an ASSERT macro for use by bootutil. Otherwise,
  * "assert" is used. */
-/* #define MCUBOOT_HAVE_ASSERT_H */
+#define MCUBOOT_HAVE_ASSERT_H
 
 /*
  * Watchdog feeding
@@ -184,7 +184,6 @@ void Mcuboot_WatchdogFeed(void);
  */
 #define MCUBOOT_WATCHDOG_FEED() \
     do {                         \
-        Mcuboot_WatchdogFeed(); \
     } while (0)
 
 
