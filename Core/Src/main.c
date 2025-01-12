@@ -56,7 +56,7 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_WWDG_Init(void);
 /* USER CODE BEGIN PFP */
-
+static void do_boot(struct boot_rsp *rsp);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -97,28 +97,26 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
-  //MX_WWDG_Init();
+  MX_WWDG_Init();
   /* USER CODE BEGIN 2 */
   struct boot_rsp rsp;
   int rv = boot_go(&rsp);
+   
   /* USER CODE END 2 */
 
-  //do_boot(&rsp);
+  if(rv == FIH_SUCCESS){
+    do_boot(&rsp);
+  }
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    static int i = 0;
-    
-    i++;
-    HAL_Delay(10);
-    MCUBOOT_WATCHDOG_FEED();
-    if(i > 100){
-      HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-      MCUBOOT_LOG_DBG("Blinking LED\n");
-      i = 0;
-    }
+
+    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+    HAL_Delay(10);    
+    MCUBOOT_LOG_DBG("Booting Failed\n");
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -127,11 +125,7 @@ int main(void)
 }
 
 
-static void start_app(uint32_t pc, uint32_t sp) {
-  __asm volatile ("MSR msp, %0" : : "r" (sp) : );
-  void (*application_reset_handler)(void) = (void *)pc;
-  application_reset_handler();
-}
+typedef void (*app_entry_t)(void); // Define a function pointer type for the application entry point
 
 static void do_boot(struct boot_rsp *rsp) {
   MCUBOOT_LOG_DBG("Starting Main Application");
@@ -148,9 +142,10 @@ static void do_boot(struct boot_rsp *rsp) {
   __disable_irq();
   // We need to move the vector table to reflect the location of the main application
   /*!< switch exception handlers to the application  */
-   SCB->VTOR = (uint32_t)app_code[0];
-
-  start_app(app_start, app_sp);
+  SCB->VTOR = (uint32_t)app_code[0];
+  __set_MSP(app_sp);
+  app_entry_t app_entry = (app_entry_t)app_start;
+  app_entry();
 }
 
 

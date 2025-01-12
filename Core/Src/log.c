@@ -78,7 +78,7 @@ void formatLogAndEnqueue(uint8_t level,  const struct log_source_const_data * pl
             uint32_t hours = totalMinutes / 60;
 
             /* Format the log message with timestamp and level */
-            snprintf(logMsg.message, LOG_MESSAGE_MAX_LENGTH, "[%02u:%02u:%02u:%03u] :: ", 
+            snprintf(logMsg.message, LOG_MESSAGE_MAX_LENGTH, "\n[%02u:%02u:%02u:%03u] :: ", 
                     (unsigned int)hours, (unsigned int)minutes, (unsigned int)seconds, (unsigned int)ms);
             
             /* Format the log message */
@@ -88,9 +88,8 @@ void formatLogAndEnqueue(uint8_t level,  const struct log_source_const_data * pl
 
             va_start(args, fmt);
             usedLen = strlen(logMsg.message); // Include brackets and space
-            usedLen = vsnprintf(logMsg.message + usedLen, LOG_MESSAGE_MAX_LENGTH - usedLen, fmt, args);
+            vsnprintf(logMsg.message + usedLen, LOG_MESSAGE_MAX_LENGTH - usedLen, fmt, args);
             va_end(args);
-            logMsg.message[usedLen + 1] = '\n'; 
             logTransmit(&logMsg);
 
         

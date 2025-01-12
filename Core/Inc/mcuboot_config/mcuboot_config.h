@@ -184,6 +184,7 @@ void Mcuboot_WatchdogFeed(void);
  */
 #define MCUBOOT_WATCHDOG_FEED() \
     do {                         \
+    Mcuboot_WatchdogFeed(); \
     } while (0)
 
 
