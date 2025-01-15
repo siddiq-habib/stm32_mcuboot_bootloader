@@ -12,9 +12,8 @@ target_include_directories(bootutil
     PUBLIC
         ${PROJECT_SOURCE_DIR}/ThirdParty/mcuboot/boot/bootutil/include
         ${PROJECT_SOURCE_DIR}/Core/Inc
-    PRIVATE
-        ${PROJECT_SOURCE_DIR}/ThirdParty/mcuboot/ext/tinycrypt/lib/include
         ../../ThirdParty/mcuboot/boot/bootutil/src
+        ../../Middlewares/Third_Party/mbedTLS/include/
 )
 
 target_sources(bootutil

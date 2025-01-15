@@ -46,8 +46,8 @@ add_executable(${CMAKE_PROJECT_NAME})
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
 
-add_subdirectory(cmake/tinycrypt)
 add_subdirectory(cmake/mcuboot)
+add_subdirectory(cmake/mbedTLS)
 
 # Link directories setup
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
@@ -60,6 +60,7 @@ set(SOURCE_FILES
     # Add other source files here
     Core/Src/mcuboot_port.c
     Core/Src/log.c
+    Core/Src/pubkey.c
 )
 
 # Add sources to executable
@@ -79,6 +80,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths    
     PUBLIC
     ${PROJECT_SOURCE_DIR}/Core/Inc
+    ${PROJECT_SOURCE_DIR}/MBEDTLS/App
 )
 
 # Add project symbols (macros)
@@ -90,7 +92,7 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
 target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
     bootutil
-    tinycrypt
+    mbedtls
     # Add user defined libraries
 )
 

@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "mbedtls.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -65,6 +66,30 @@ void Mcuboot_WatchdogFeed()
 {
   HAL_WWDG_Refresh(&hwwdg);
 }
+
+
+typedef void (*app_entry_t)(void); // Define a function pointer type for the application entry point
+
+static void do_boot(struct boot_rsp *rsp) {
+  MCUBOOT_LOG_DBG("Starting Main Application");
+  MCUBOOT_LOG_DBG("  Image Start Offset: 0x%x", (int)rsp->br_image_off);
+
+  uint32_t vector_table = rsp->br_image_off + rsp->br_hdr->ih_hdr_size;
+
+  uint32_t *app_code = (uint32_t *)vector_table;
+  uint32_t app_sp = app_code[0];
+  uint32_t app_start = app_code[1];
+
+  MCUBOOT_LOG_DBG("  Vector Table Start Address: 0x%x. PC=0x%x, SP=0x%x",
+    (int)vector_table, app_start, app_sp);
+  __disable_irq();
+  // We need to move the vector table to reflect the location of the main application
+  /*!< switch exception handlers to the application  */
+  SCB->VTOR = (uint32_t)app_code[0];
+  __set_MSP(app_sp);
+  app_entry_t app_entry = (app_entry_t)app_start;
+  app_entry();
+}
 /* USER CODE END 0 */
 
 /**
@@ -98,15 +123,17 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_WWDG_Init();
+  MX_MBEDTLS_Init();
   /* USER CODE BEGIN 2 */
   struct boot_rsp rsp;
   int rv = boot_go(&rsp);
    
-  /* USER CODE END 2 */
-
   if(rv == FIH_SUCCESS){
     do_boot(&rsp);
   }
+  /* USER CODE END 2 */
+
+
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -122,30 +149,6 @@ int main(void)
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
-}
-
-
-typedef void (*app_entry_t)(void); // Define a function pointer type for the application entry point
-
-static void do_boot(struct boot_rsp *rsp) {
-  MCUBOOT_LOG_DBG("Starting Main Application");
-  MCUBOOT_LOG_DBG("  Image Start Offset: 0x%x", (int)rsp->br_image_off);
-
-  uint32_t vector_table = rsp->br_image_off + rsp->br_hdr->ih_hdr_size;
-
-  uint32_t *app_code = (uint32_t *)vector_table;
-  uint32_t app_sp = app_code[0];
-  uint32_t app_start = app_code[1];
-
-  MCUBOOT_LOG_DBG("  Vector Table Start Address: 0x%x. PC=0x%x, SP=0x%x",
-    (int)vector_table, app_start, app_sp);
-  __disable_irq();
-  // We need to move the vector table to reflect the location of the main application
-  /*!< switch exception handlers to the application  */
-  SCB->VTOR = (uint32_t)app_code[0];
-  __set_MSP(app_sp);
-  app_entry_t app_entry = (app_entry_t)app_start;
-  app_entry();
 }
 
 
