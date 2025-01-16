@@ -26,19 +26,18 @@ MCUBOOT_LOG_MODULE_DECLARE(mcuboot);
 // Memory Allocation
 // | Memory Area         | Size    | Start Address | End Address   | Sectors Covered                          |
 // |---------------------|---------|---------------|---------------|------------------------------------------|
-// | Bootloader          | 48 KB   | 0x0800 0000   | 0x0800 BFFF   | Sector 0, Sector 1, Sector 2 (16 KB each)|
-// | Storage Area        | 80 KB   | 0x0800 C000   | 0x0801 9FFF   | Sector 3 (16 KB), Sector 4 (64 KB)       |
+// | Bootloader          | 128 KB  | 0x0800 0000   | 0x0800 BFFF   | Sector 0, Sector 1, Sector 2 (16 KB each)|
+// |                                                               | Sector 3 (16 KB), Sector 4 (64 KB)       |
 // | PRIMARY_SLOT        | 192 KB  | 0x0801 A000   | 0x0804 9FFF   | Sector 5 (128 KB), Sector 6 (64 KB)      |
 // | SECONDARY_SLOT      | 192 KB  | 0x0804 A000   | 0x0807 9FFF   | Sector 6 (64 KB), Sector 7 (128 KB)      |
 
 
-#define BOOTLOADER_SIZE (48 * 1024)
-#define STORAGE_AREA_SIZE (80 * 1024)
+#define BOOTLOADER_SIZE (128 * 1024)
 #define APPLICATION_SIZE (192 * 1024)
 #define BOARD_FLASH_SIZE (512 * 1024)
 
 #define BOOTLOADER_START_ADDRESS 0x08000000UL
-#define APPLICATION_PRIMARY_START_ADDRESS (BOOTLOADER_START_ADDRESS + BOOTLOADER_SIZE + STORAGE_AREA_SIZE)
+#define APPLICATION_PRIMARY_START_ADDRESS (BOOTLOADER_START_ADDRESS + BOOTLOADER_SIZE)
 #define APPLICATION_SECONDARY_START_ADDRESS (APPLICATION_PRIMARY_START_ADDRESS + APPLICATION_SIZE)
 
 
@@ -75,7 +74,6 @@ static const uint32_t sector_size[] = {
   16 * 1024, // Sector 0
   16 * 1024, // Sector 1
   16 * 1024, // Sector 2
-  // Storage Area (80 KB)
   16 * 1024, // Sector 3
   64 * 1024, // Sector 4
   // PRIMARY_SLOT (192 KB)

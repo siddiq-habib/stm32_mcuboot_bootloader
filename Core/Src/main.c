@@ -139,10 +139,15 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    static uint8_t count = 0;
 
     HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-    HAL_Delay(10);    
-    MCUBOOT_LOG_DBG("Booting Failed\n");
+    HAL_Delay(1000);    
+    count++;
+    if(count % 10 == 0){
+      count = 0;
+      MCUBOOT_LOG_DBG("Booting Failed\n");
+    }
 
     /* USER CODE END WHILE */
 

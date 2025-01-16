@@ -33,7 +33,7 @@ void Mcuboot_WatchdogFeed(void);
 //#define MCUBOOT_SIGN_RSA_LEN 2048
 
 /* Uncomment for ECDSA signatures using curve P-256. */
-/* #define MCUBOOT_SIGN_EC256 */
+#define MCUBOOT_SIGN_EC256
 
 /*
  * Public key handling
