@@ -28,12 +28,12 @@ MCUBOOT_LOG_MODULE_DECLARE(mcuboot);
 // |---------------------|---------|---------------|---------------|------------------------------------------|
 // | Bootloader          | 128 KB  | 0x0800 0000   | 0x0800 BFFF   | Sector 0, Sector 1, Sector 2 (16 KB each)|
 // |                                                               | Sector 3 (16 KB), Sector 4 (64 KB)       |
-// | PRIMARY_SLOT        | 192 KB  | 0x0801 A000   | 0x0804 9FFF   | Sector 5 (128 KB), Sector 6 (64 KB)      |
-// | SECONDARY_SLOT      | 192 KB  | 0x0804 A000   | 0x0807 9FFF   | Sector 6 (64 KB), Sector 7 (128 KB)      |
+// | PRIMARY_SLOT        | 128 KB  | 0x0802 0000   | 0x0803 9FFF   | Sector 5 (128 KB)                        |
+// | SECONDARY_SLOT      | 128 KB  | 0x0804 0000   | 0x0807 9FFF   | Sector 6 (128 KB),                       |
 
 
 #define BOOTLOADER_SIZE (128 * 1024)
-#define APPLICATION_SIZE (192 * 1024)
+#define APPLICATION_SIZE (128 * 1024)
 #define BOARD_FLASH_SIZE (512 * 1024)
 
 #define BOOTLOADER_START_ADDRESS 0x08000000UL
@@ -76,12 +76,12 @@ static const uint32_t sector_size[] = {
   16 * 1024, // Sector 2
   16 * 1024, // Sector 3
   64 * 1024, // Sector 4
-  // PRIMARY_SLOT (192 KB)
+  // PRIMARY_SLOT (128 KB)
   128 * 1024, // Sector 5
-  64 * 1024,  // Part of Sector 6
-  // SECONDARY_SLOT (192 KB)
-  64 * 1024,  // Part of Sector 6
-  128 * 1024, // Sector 7
+  // SECONDARY_SLOT (128 KB)
+  128 * 1024,  // Part of Sector 6
+  // spare
+  128 * 1024 // Sector 7
 };
 
 
@@ -123,7 +123,7 @@ static bool flash_erase(uint32_t addr)
     }
 
     if (!erased && !is_blank(sector_addr, size)) {
-        MCUBOOT_LOG_DBG("Erase: %08lX size = %lu KB ... \r\n", sector_addr, size / 1024);
+        MCUBOOT_LOG_DBG("Erase: %08lX  Sector =  %d size = %lu KB ... \r\n", sector_addr, sector, size / 1024);
         FLASH_Erase_Sector(sector, FLASH_VOLTAGE_RANGE_3);
         FLASH_WaitForLastOperation(HAL_MAX_DELAY);
         MCUBOOT_LOG_DBG("OK\r\n");
@@ -156,7 +156,7 @@ static void flash_write(uint32_t dst, const uint8_t *src, int len)
 
 static void mcuboot_flash_write(uint32_t start_add, void *buffer, uint32_t size)
 {
-    HAL_FLASH_Unlock();
+    HAL_FLASH_Unlock();    
     flash_write(start_add, buffer, size);
     HAL_FLASH_Lock();
 }
@@ -164,7 +164,13 @@ static void mcuboot_flash_write(uint32_t start_add, void *buffer, uint32_t size)
 void mcuboot_flash_erase(uint32_t start_add, uint32_t len)
 {
     (void)len;
+    if(HAL_FLASH_Unlock() == HAL_OK)
+    {
+      MCUBOOT_LOG_DBG("Flash unlocked\n");
+    }
     flash_erase(start_add);
+    HAL_FLASH_Lock();
+    
 }
 
 /**
@@ -325,15 +331,18 @@ int flash_area_get_sectors(int fa_id, uint32_t *count,
   // Loop through the total flash sectors
   while(tf_sector_index < tf_sector_count) {        
     // Check if the current sector offset matches the flash area offset
-    if(fa->fa_off == tf_sector_offset) {
+    if(fa->fa_off == (BOOTLOADER_START_ADDRESS + tf_sector_offset)) {
       // Loop through the flash area size and assign sectors
-      for (size_t off = 0; off < fa->fa_size; off += sector_size[tf_sector_index]) {
+      size_t off = 0;
+      while( off < fa->fa_size) {
         // Note: Offset here is relative to flash area, not device
-        sectors[fa_sector_index].fs_off = off; // Set the sector offset
+        sectors[fa_sector_index].fs_off = fa->fa_off + off; // Set the sector offset
         sectors[fa_sector_index].fs_size = sector_size[tf_sector_index]; // Set the sector size
+        
+        off += sector_size[tf_sector_index];
         fa_sector_index++; // Increment the flash area sector index
         tf_sector_index++; // Increment the total flash sector index
-        if(tf_sector_index >= tf_sector_count){
+        if(tf_sector_index > tf_sector_count){
           return -1;
         }
       }
