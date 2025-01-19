@@ -29,8 +29,8 @@ MCUBOOT_LOG_MODULE_DECLARE(mcuboot);
 // | Bootloader          | 128 KB  | 0x0800 0000   | 0x0800 BFFF   | Sector 0, Sector 1, Sector 2 (16 KB each)|
 // |                                                               | Sector 3 (16 KB), Sector 4 (64 KB)       |
 // | PRIMARY_SLOT        | 128 KB  | 0x0802 0000   | 0x0803 9FFF   | Sector 5 (128 KB)                        |
-// | SECONDARY_SLOT      | 128 KB  | 0x0804 0000   | 0x0807 9FFF   | Sector 6 (128 KB),                       |
-
+// | SECONDARY_SLOT      | 128 KB  | 0x0804 0000   | 0x0805 9FFF   | Sector 6 (128 KB),                       |
+// | SWAP_AREA           | 128 KB  | 0x0806 0000   | 0x0807 9FFF   | Sector 6 (128 KB)                        |
 
 #define BOOTLOADER_SIZE (128 * 1024)
 #define APPLICATION_SIZE (128 * 1024)
@@ -39,6 +39,7 @@ MCUBOOT_LOG_MODULE_DECLARE(mcuboot);
 #define BOOTLOADER_START_ADDRESS 0x08000000UL
 #define APPLICATION_PRIMARY_START_ADDRESS (BOOTLOADER_START_ADDRESS + BOOTLOADER_SIZE)
 #define APPLICATION_SECONDARY_START_ADDRESS (APPLICATION_PRIMARY_START_ADDRESS + APPLICATION_SIZE)
+#define SWAP_AREA_START_ADDRESS (APPLICATION_SECONDARY_START_ADDRESS + APPLICATION_SIZE)
 
 
 static const struct flash_area bootloader = {
@@ -62,10 +63,19 @@ static const struct flash_area secondary_img0 = {
   .fa_size = APPLICATION_SIZE,
 };
 
+static const struct flash_area swap_area = {
+  .fa_id = FLASH_AREA_IMAGE_SCRATCH,
+  .fa_device_id = FLASH_DEVICE_INTERNAL_FLASH,
+  .fa_off = SWAP_AREA_START_ADDRESS,
+  .fa_size = APPLICATION_SIZE,
+};
+
+
 static const struct flash_area *s_flash_areas[] = {
   &bootloader,
   &primary_img0,
   &secondary_img0,
+  &swap_area
 };
 
 /*!< flash parameters for internal use */
@@ -80,7 +90,7 @@ static const uint32_t sector_size[] = {
   128 * 1024, // Sector 5
   // SECONDARY_SLOT (128 KB)
   128 * 1024,  // Part of Sector 6
-  // spare
+  // swap area
   128 * 1024 // Sector 7
 };
 
@@ -156,7 +166,10 @@ static void flash_write(uint32_t dst, const uint8_t *src, int len)
 
 static void mcuboot_flash_write(uint32_t start_add, void *buffer, uint32_t size)
 {
-    HAL_FLASH_Unlock();    
+    if(HAL_FLASH_Unlock() == HAL_OK)
+    {
+      MCUBOOT_LOG_DBG("Flash unlocked\n");
+    }    
     flash_write(start_add, buffer, size);
     HAL_FLASH_Lock();
 }
@@ -363,4 +376,40 @@ int flash_area_get_sectors(int fa_id, uint32_t *count,
 void mcuboot_assert_handler(const char *file, int line) {
   MCUBOOT_LOG_ERR("ASSERT: File: %s Line: %d", file, line);
   Error_Handler();
+}
+
+
+/****************************************************************************
+ * Name: flash_area_id_to_multi_image_slot
+ *
+ * Description:
+ *   Convert the specified flash area ID and image index (in case of a
+ *   multi-image setup) to an image slot index.
+ *
+ * Input Parameters:
+ *   image_index - Index of the image.
+ *   area_id     - Unique identifier that is represented by fa_id in the
+ *                 flash_area struct.
+ * Returned Value:
+ *   Image slot index (0 or 1), or negative value in case ID doesn't
+ *   correspond to an image slot.
+ *
+ ****************************************************************************/
+
+int flash_area_id_to_multi_image_slot(int image_index, int area_id)
+{
+  if (area_id == FLASH_AREA_IMAGE_PRIMARY(image_index))
+    {
+      return 0;
+    }
+
+  if (area_id == FLASH_AREA_IMAGE_SECONDARY(image_index))
+    {
+      return 1;
+    }
+
+  MCUBOOT_LOG_ERR("Unexpected Request: image_index:%d, area_id:%d",
+               image_index, area_id);
+
+  return ERROR; /* flash_area_open will fail on that */
 }

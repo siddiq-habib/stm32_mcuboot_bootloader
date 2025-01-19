@@ -1,3 +1,5 @@
+#pragma once
+
 #include <mcuboot_config/mcuboot_config.h>
 
 // A user-defined identifier for different storage mediums (i.e internal flash, external NOR flash, eMMC, etc)
@@ -16,3 +18,5 @@
 //! given an image_index. We'll plan to use
 #define FLASH_AREA_IMAGE_PRIMARY(i) ((i == 0) ? 1 : 255)
 #define FLASH_AREA_IMAGE_SECONDARY(i) ((i == 0) ? 2 : 255)
+
+#define FLASH_AREA_IMAGE_SCRATCH 3
